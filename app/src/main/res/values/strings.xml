@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Simple TTS</string>
+    <string name="action_settings">Settings</string>
+    <string name="translation_message">
+        A Question Mark button, onClick will display few lines of texts.
+        You can make the text display via fragment or dialog.
+        The user should be able to dismiss this fragment/dialog and go back to screen C.
+    </string>
+</resources>
