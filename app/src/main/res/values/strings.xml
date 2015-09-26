@@ -4,6 +4,13 @@
     <string name="translation_message">
         A Question Mark button, onClick will display few lines of texts.
         You can make the text display via fragment or dialog.
-        The user should be able to dismiss this fragment/dialog and go back to screen C.
     </string>
+
+    <string-array name="languages_array">
+        <item>English (US)</item>
+        <item>English (UK)</item>
+        <item>Chinese</item>
+        <item>French</item>
+        <item>German</item>
+    </string-array>
 </resources>

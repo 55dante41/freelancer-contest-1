@@ -33,6 +33,15 @@
             android:textSize="40sp"
             android:text="15"/>
 
+        <Spinner
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/main_language_spinner"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:entries="@array/languages_array">
+        </Spinner>
+
     </LinearLayout>
 
     <LinearLayout

@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.speech.tts.TextToSpeech;
@@ -12,10 +14,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -26,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     Context context;
 
     ImageButton helpActionButton, playActionButton, pauseActionButton, stopActionButton;
+    Spinner localeSelector;
 
     AlertDialog.Builder alertDialogBuilder;
     AlertDialog alertDialog;
@@ -34,7 +41,6 @@ public class MainActivity extends AppCompatActivity {
     int currentCountDownTimeInSecs = 15;
     TextToSpeech textToSpeechTranslator;
     boolean isTextToSpeechTranslatorInitiated = false;
-    int pauseIndex = -1;
 
     String translationMessage;
     String[] translationMessageWords;
@@ -42,11 +48,19 @@ public class MainActivity extends AppCompatActivity {
     HashMap<String, String> textToSpeechTranslatorParamsMap;
     Bundle textToSpeechTranslatorParamsBundle;
 
+    String translationMessageFilepath;
+    File translationMessageFile;
+
+    MediaPlayer mediaPlayer;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        translationMessageFilepath = getApplicationContext().getFilesDir().getPath() + "/media1.wav";
+        translationMessageFile = new File(translationMessageFilepath);
 
         context = this;
 
@@ -55,6 +69,8 @@ public class MainActivity extends AppCompatActivity {
         playActionButton = (ImageButton) findViewById(R.id.main_play_action);
         pauseActionButton = (ImageButton) findViewById(R.id.main_pause_action);
         stopActionButton = (ImageButton) findViewById(R.id.main_stop_action);
+        localeSelector = (Spinner) findViewById(R.id.main_language_spinner);
+
         toolbar = (Toolbar) findViewById(R.id.start_toolbar);
 
         setSupportActionBar(toolbar);
@@ -76,14 +92,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onInit(int status) {
                 isTextToSpeechTranslatorInitiated = true;
+                generateTranslationFile();
             }
         });
-
-        if(textToSpeechTranslator.isLanguageAvailable(Locale.ENGLISH) == TextToSpeech.LANG_MISSING_DATA) {
-            Intent checkIntent = new Intent();
-            checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-            startActivityForResult(checkIntent, 99);
-        }
 
         countDownTimer = getCountDownTimer();
         countDownTimer.start();
@@ -108,37 +119,18 @@ public class MainActivity extends AppCompatActivity {
         playActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                    pauseActionButton.setVisibility(View.VISIBLE);
+                    stopActionButton.setVisibility(View.VISIBLE);
+                    mediaPlayer.start();
 
-                if (isTextToSpeechTranslatorInitiated) {
-                    if(!textToSpeechTranslator.isSpeaking()) {
-                        pauseActionButton.setVisibility(View.VISIBLE);
-                        stopActionButton.setVisibility(View.VISIBLE);
-                        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                            textToSpeechTranslator.speak(translationMessage, TextToSpeech.QUEUE_FLUSH, textToSpeechTranslatorParamsBundle, "");
-                        } else {
-                            Log.d("DEBUG", "pauseIndex: " + pauseIndex);
-                            int startIndex = 0;
-                            if(pauseIndex > -1) {
-                                startIndex = pauseIndex;
-                            }
-                            for(int i = startIndex; i < translationMessageWords.length; i++) {
-                                textToSpeechTranslator.speak(translationMessageWords[i], TextToSpeech.QUEUE_ADD, textToSpeechTranslatorParamsMap);
-                            }
-                        }
-                        countDownTimer.cancel();
-                    }
-                } else {
-                    Toast.makeText(context,
-                            "Please wait for the text-to-speech translator to start...",
-                            Toast.LENGTH_SHORT).show();
-                }
+                countDownTimer.cancel();
             }
         });
         pauseActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(textToSpeechTranslator.isSpeaking()) {
-                    textToSpeechTranslator.stop();
+                if(mediaPlayer.isPlaying()) {
+                    mediaPlayer.pause();
                     continueCountDown();
                 }
             }
@@ -146,11 +138,139 @@ public class MainActivity extends AppCompatActivity {
         stopActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(textToSpeechTranslator.isSpeaking()) {
-                    textToSpeechTranslator.stop();
+                if(mediaPlayer.isPlaying()) {
+                    mediaPlayer.pause();
+                    mediaPlayer.seekTo(0);
                     continueCountDown();
                 }
-                pauseIndex = -1;
+            }
+        });
+        textToSpeechTranslator.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override
+            public void onStart(String utteranceId) {
+            }
+
+            @Override
+            public void onDone(String utteranceId) {
+
+                File fileTTS = new File(translationMessageFilepath);
+
+                if (fileTTS.exists()) {
+                    Log.d("DEBUG", "successfully created fileTTS: " + fileTTS.length());
+                    mediaPlayer = MediaPlayer.create(context, Uri.fromFile(fileTTS));
+                    try {
+                        mediaPlayer.prepare();
+                    } catch (IOException e) {
+                        Log.d("DEBUG", "Error thrown");
+                        e.printStackTrace();
+                    }
+                } else {
+                    Log.d("DEBUG", "failed while creating fileTTS");
+                }
+            }
+
+            @Override
+            public void onError(String utteranceId) {
+
+            }
+        });
+
+        localeSelector.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.d("DEBUG", "" + position);
+                int status;
+                switch (position) {
+                    case 0:
+                        status = textToSpeechTranslator.setLanguage(Locale.US);
+                        Log.d("DEBUG", ""+status);
+                        if(status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
+                            if (textToSpeechTranslator.isLanguageAvailable(Locale.US) == TextToSpeech.LANG_AVAILABLE) {
+                                Intent checkIntent = new Intent();
+                                checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                                startActivityForResult(checkIntent, 99);
+                            } else {
+                                Toast.makeText(context, "Language not available.", Toast.LENGTH_LONG).show();
+                            }
+                        } else {
+                            generateTranslationFile();
+                        }
+                        break;
+                    case 1:
+                        status = textToSpeechTranslator.setLanguage(Locale.UK);
+                        Log.d("DEBUG", ""+status);
+                        if(status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
+                            if (textToSpeechTranslator.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE) {
+                                Intent checkIntent = new Intent();
+                                checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                                startActivityForResult(checkIntent, 99);
+                            } else {
+                                Toast.makeText(context, "Language not available.", Toast.LENGTH_LONG).show();
+                            }
+                        } else {
+                            generateTranslationFile();
+                        }
+                        break;
+                    case 2:
+                        status = textToSpeechTranslator.setLanguage(Locale.CHINESE);
+                        Log.d("DEBUG", ""+status);
+                        if(status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
+                            if (textToSpeechTranslator.isLanguageAvailable(Locale.CHINESE) == TextToSpeech.LANG_AVAILABLE) {
+                                Intent checkIntent = new Intent();
+                                checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                                startActivityForResult(checkIntent, 99);
+                            } else {
+                                Toast.makeText(context, "Language not available.", Toast.LENGTH_LONG).show();
+                            }
+                        } else {
+                            generateTranslationFile();
+                        }
+                        break;
+                    case 3:
+                        status = textToSpeechTranslator.setLanguage(Locale.FRENCH);
+                        Log.d("DEBUG", ""+status);
+                        if(status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
+                            if (textToSpeechTranslator.isLanguageAvailable(Locale.FRENCH) == TextToSpeech.LANG_AVAILABLE) {
+                                Intent checkIntent = new Intent();
+                                checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                                startActivityForResult(checkIntent, 99);
+                            } else {
+                                Toast.makeText(context, "Language not available.", Toast.LENGTH_LONG).show();
+                            }
+                        } else {
+                            generateTranslationFile();
+                        }
+                        break;
+                    case 4:
+                        status = textToSpeechTranslator.setLanguage(Locale.GERMAN);
+                        Log.d("DEBUG", ""+status);
+                        if(status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
+                            if (textToSpeechTranslator.isLanguageAvailable(Locale.GERMAN) == TextToSpeech.LANG_AVAILABLE) {
+                                Intent checkIntent = new Intent();
+                                checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                                startActivityForResult(checkIntent, 99);
+                            }
+                        } else {
+                            generateTranslationFile();
+                        }
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                int status = textToSpeechTranslator.setLanguage(Locale.US);
+                if(status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    if (textToSpeechTranslator.isLanguageAvailable(Locale.US) == TextToSpeech.LANG_AVAILABLE) {
+                        Intent checkIntent = new Intent();
+                        checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                        startActivityForResult(checkIntent, 99);
+                    } else {
+                        Toast.makeText(context, "Language not available.", Toast.LENGTH_LONG).show();
+                    }
+                } else {
+                    generateTranslationFile();
+                }
             }
         });
     }
@@ -160,6 +280,7 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
 
         textToSpeechTranslator.shutdown();
+        mediaPlayer.release();
     }
 
     @Override
@@ -172,28 +293,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onInit(int status) {
                         isTextToSpeechTranslatorInitiated = true;
-                    }
-                });
-                textToSpeechTranslator.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                    @Override
-                    public void onStart(String utteranceId) {
-                    }
-
-                    @Override
-                    public void onDone(String utteranceId) {
-                        pauseIndex++;
-                        if(pauseIndex >= translationMessageWords.length -1) {
-                            Log.d("DEBUG", "called this..");
-                            Log.d("DEBUG", currentCountDownTimeInSecs + "");
-                            countDownTimer = getCountDownTimer();
-                            countDownTimer.start();
-                            pauseIndex = -1;
-                        }
-                    }
-
-                    @Override
-                    public void onError(String utteranceId) {
-
                     }
                 });
 
@@ -224,5 +323,15 @@ public class MainActivity extends AppCompatActivity {
                 finish();
             }
         };
+    }
+
+    public void generateTranslationFile() {
+        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            int i = textToSpeechTranslator.synthesizeToFile(translationMessage, textToSpeechTranslatorParamsBundle, translationMessageFile, "");
+            Log.d("DEBUG", "" + i);
+        } else {
+            int i = textToSpeechTranslator.synthesizeToFile(translationMessage, textToSpeechTranslatorParamsMap, translationMessageFilepath);
+            Log.d("DEBUG", "" + i);
+        }
     }
 }
