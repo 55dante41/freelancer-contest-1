@@ -43,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
     boolean isTextToSpeechTranslatorInitiated = false;
 
     String translationMessage;
-    String[] translationMessageWords;
 
     HashMap<String, String> textToSpeechTranslatorParamsMap;
     Bundle textToSpeechTranslatorParamsBundle;
@@ -80,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
         alertDialogBuilder = new AlertDialog.Builder(context);
 
         translationMessage = getResources().getString(R.string.translation_message);
-        translationMessageWords = translationMessage.split(" ");
 
         textToSpeechTranslatorParamsMap = new HashMap<>();
         textToSpeechTranslatorParamsMap.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "YES");
@@ -119,9 +117,9 @@ public class MainActivity extends AppCompatActivity {
         playActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                    pauseActionButton.setVisibility(View.VISIBLE);
-                    stopActionButton.setVisibility(View.VISIBLE);
-                    mediaPlayer.start();
+                pauseActionButton.setVisibility(View.VISIBLE);
+                stopActionButton.setVisibility(View.VISIBLE);
+                mediaPlayer.start();
 
                 countDownTimer.cancel();
             }
@@ -129,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
         pauseActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mediaPlayer.isPlaying()) {
+                if (mediaPlayer.isPlaying()) {
                     mediaPlayer.pause();
                     continueCountDown();
                 }
@@ -138,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
         stopActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mediaPlayer.isPlaying()) {
+                if (mediaPlayer.isPlaying()) {
                     mediaPlayer.pause();
                     mediaPlayer.seekTo(0);
                     continueCountDown();
@@ -183,73 +181,57 @@ public class MainActivity extends AppCompatActivity {
                 switch (position) {
                     case 0:
                         status = textToSpeechTranslator.setLanguage(Locale.US);
-                        Log.d("DEBUG", ""+status);
-                        if(status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
-                            if (textToSpeechTranslator.isLanguageAvailable(Locale.US) == TextToSpeech.LANG_AVAILABLE) {
-                                Intent checkIntent = new Intent();
-                                checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                                startActivityForResult(checkIntent, 99);
-                            } else {
-                                Toast.makeText(context, "Language not available.", Toast.LENGTH_LONG).show();
-                            }
+                        Log.d("DEBUG", "" + status);
+                        if (status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
+
+                            Intent checkIntent = new Intent();
+                            checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                            startActivityForResult(checkIntent, 99);
+
                         } else {
                             generateTranslationFile();
                         }
                         break;
                     case 1:
                         status = textToSpeechTranslator.setLanguage(Locale.UK);
-                        Log.d("DEBUG", ""+status);
-                        if(status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
-                            if (textToSpeechTranslator.isLanguageAvailable(Locale.UK) == TextToSpeech.LANG_AVAILABLE) {
-                                Intent checkIntent = new Intent();
-                                checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                                startActivityForResult(checkIntent, 99);
-                            } else {
-                                Toast.makeText(context, "Language not available.", Toast.LENGTH_LONG).show();
-                            }
+                        Log.d("DEBUG", "" + status);
+                        if (status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
+                            Intent checkIntent = new Intent();
+                            checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                            startActivityForResult(checkIntent, 99);
                         } else {
                             generateTranslationFile();
                         }
                         break;
                     case 2:
                         status = textToSpeechTranslator.setLanguage(Locale.CHINESE);
-                        Log.d("DEBUG", ""+status);
-                        if(status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
-                            if (textToSpeechTranslator.isLanguageAvailable(Locale.CHINESE) == TextToSpeech.LANG_AVAILABLE) {
-                                Intent checkIntent = new Intent();
-                                checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                                startActivityForResult(checkIntent, 99);
-                            } else {
-                                Toast.makeText(context, "Language not available.", Toast.LENGTH_LONG).show();
-                            }
+                        Log.d("DEBUG", "" + status);
+                        if (status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
+                            Intent checkIntent = new Intent();
+                            checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                            startActivityForResult(checkIntent, 99);
                         } else {
                             generateTranslationFile();
                         }
                         break;
                     case 3:
                         status = textToSpeechTranslator.setLanguage(Locale.FRENCH);
-                        Log.d("DEBUG", ""+status);
-                        if(status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
-                            if (textToSpeechTranslator.isLanguageAvailable(Locale.FRENCH) == TextToSpeech.LANG_AVAILABLE) {
-                                Intent checkIntent = new Intent();
-                                checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                                startActivityForResult(checkIntent, 99);
-                            } else {
-                                Toast.makeText(context, "Language not available.", Toast.LENGTH_LONG).show();
-                            }
+                        Log.d("DEBUG", "" + status);
+                        if (status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
+                            Intent checkIntent = new Intent();
+                            checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                            startActivityForResult(checkIntent, 99);
                         } else {
                             generateTranslationFile();
                         }
                         break;
                     case 4:
                         status = textToSpeechTranslator.setLanguage(Locale.GERMAN);
-                        Log.d("DEBUG", ""+status);
-                        if(status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
-                            if (textToSpeechTranslator.isLanguageAvailable(Locale.GERMAN) == TextToSpeech.LANG_AVAILABLE) {
-                                Intent checkIntent = new Intent();
-                                checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                                startActivityForResult(checkIntent, 99);
-                            }
+                        Log.d("DEBUG", "" + status);
+                        if (status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
+                            Intent checkIntent = new Intent();
+                            checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                            startActivityForResult(checkIntent, 99);
                         } else {
                             generateTranslationFile();
                         }
@@ -260,11 +242,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 int status = textToSpeechTranslator.setLanguage(Locale.US);
-                if(status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
+                if (status == TextToSpeech.LANG_MISSING_DATA || status == TextToSpeech.LANG_NOT_SUPPORTED) {
                     if (textToSpeechTranslator.isLanguageAvailable(Locale.US) == TextToSpeech.LANG_AVAILABLE) {
                         Intent checkIntent = new Intent();
                         checkIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                        startActivityForResult(checkIntent, 99);
+                        startActivity(checkIntent);
                     } else {
                         Toast.makeText(context, "Language not available.", Toast.LENGTH_LONG).show();
                     }
@@ -283,36 +265,13 @@ public class MainActivity extends AppCompatActivity {
         mediaPlayer.release();
     }
 
-    @Override
-    protected void onActivityResult(
-            int requestCode, int resultCode, Intent data) {
-        if (requestCode == 99) {
-            if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
-                // success, create the TTS instance
-                textToSpeechTranslator = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
-                    @Override
-                    public void onInit(int status) {
-                        isTextToSpeechTranslatorInitiated = true;
-                    }
-                });
-
-            } else {
-                // missing data, install it
-                Intent installIntent = new Intent();
-                installIntent.setAction(
-                        TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-                startActivity(installIntent);
-            }
-        }
-    }
-
     public void continueCountDown() {
         countDownTimer = getCountDownTimer();
         countDownTimer.start();
     }
 
     public CountDownTimer getCountDownTimer() {
-        return new CountDownTimer(currentCountDownTimeInSecs*1000, 1000) {
+        return new CountDownTimer(currentCountDownTimeInSecs * 1000, 1000) {
             public void onTick(long millisUntilFinished) {
                 currentCountDownTimeInSecs = (int) (millisUntilFinished / 1000);
                 timerCountTextView.setText("" + currentCountDownTimeInSecs);
@@ -326,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void generateTranslationFile() {
-        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             int i = textToSpeechTranslator.synthesizeToFile(translationMessage, textToSpeechTranslatorParamsBundle, translationMessageFile, "");
             Log.d("DEBUG", "" + i);
         } else {
