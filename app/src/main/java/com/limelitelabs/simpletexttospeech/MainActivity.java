@@ -15,8 +15,10 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
     ImageButton helpActionButton, playActionButton, pauseActionButton, stopActionButton;
     Spinner localeSelector;
+    Switch voiceGenderSwitch;
 
     AlertDialog.Builder alertDialogBuilder;
     AlertDialog alertDialog;
@@ -69,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
         pauseActionButton = (ImageButton) findViewById(R.id.main_pause_action);
         stopActionButton = (ImageButton) findViewById(R.id.main_stop_action);
         localeSelector = (Spinner) findViewById(R.id.main_language_spinner);
+        voiceGenderSwitch = (Switch) findViewById(R.id.main_gender_switch);
 
         toolbar = (Toolbar) findViewById(R.id.start_toolbar);
 
@@ -252,6 +256,34 @@ public class MainActivity extends AppCompatActivity {
                     }
                 } else {
                     generateTranslationFile();
+                }
+            }
+        });
+
+        voiceGenderSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked) {
+
+                } else {
+                    alertDialog = alertDialogBuilder.setMessage("This voice is not supported in the current engine. Do you want to download a supported engine?")
+                            .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    final String appPackageName = "com.ivona.tts";
+                                    try {
+                                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
+                                    } catch (android.content.ActivityNotFoundException anfe) {
+                                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+                                    }
+                                }
+                            }).setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            voiceGenderSwitch.setChecked(true);
+                        }
+                    }).create();
+                    alertDialog.show();
                 }
             }
         });
